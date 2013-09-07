@@ -21,6 +21,9 @@ int flip(int s, int pos){
     return s;
 }
 
+/**
+ * 穷举，广度优先搜索
+ */
 int main(){
     char c;
     int state, i, t, ns;
