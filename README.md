@@ -5,3 +5,6 @@
 
 ### 1723 SOLDIERS
 排序，距离之差最小，中位数
+
+### 1727 Advanced Causal Measurements
+排序，二分查找（穷举），贪心法选择区域覆盖
