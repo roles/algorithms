@@ -1,14 +1,18 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
+#include<time.h>
 #include<string.h>
 
-#define D 3
-#define N 5000
-#define M 3
+#define D 8
+#define N 200
+#define M 10
 #define K 2
 #define layer 2
-#define b 0.5
+#define eta 0.1
+#define alpha 0.6
+
+#define rando() (rand() * 1.0 / RAND_MAX)
 
 double w[layer][M][M];
 double x[N][D];
@@ -16,6 +20,7 @@ double a[M], z[M];
 double y[N][K];
 double t[N][K];
 double err[layer][M];
+double d[layer][M][M];
 
 double tanh(double a){
     return (exp(a) - exp(-a)) / (exp(a) + exp(-a));
@@ -53,58 +58,84 @@ double get_total_error(int n){
     double ret = 0.0;
     int i, k;
     for(k = 0; k < K; k++){
-        ret += (y[n][k] - t[n][k]) * (y[n][k] - t[n][k]);
+        ret += 0.5 * (y[n][k] - t[n][k]) * (y[n][k] - t[n][k]);
     }
     return ret;
 }
 
 int main(){
     int i, j, k, n; 
-    int gender;
-    double ta, tb;
-    int tc;
+    char res[5];
+    int d1, d2, d3, d4, d7;
+    double d5, d6;
+    int loop;
     double total_error;
     double *test;
-    //double in[3] = {1, 62.6383155794665, 136.100239364981};
-    double in[3] = {1, 71.1121440756254, 202.357719518503};
+    double in1[8] = {1, 6, 148, 72, 35, 33.6, 0.627, 50}; //Yes
+    double in2[8] = {1, 1, 85, 66, 29, 26.6, 0.351, 31}; //No
 
-    freopen("data_train.txt", "r", stdin);
+    freopen("pima.tr", "r", stdin);
+
+    srand((int)time(0));
 
     for(i = 0; i < N; i++){
-        scanf("%lf%lf%d", &x[i][1], &x[i][2], &gender);
+        scanf("%d%d%d%d%lf%lf%d%s", &d1, &d2, &d3, &d4, &d5, &d6, &d7, res);
         x[i][0] = 1.0;
-        t[i][0] = 1.0 * gender;
-        t[i][1] = 1.0 - gender;
+        x[i][1] = 1.0 * d1;
+        x[i][2] = 1.0 * d2;
+        x[i][3] = 1.0 * d3;
+        x[i][4] = 1.0 * d4;
+        x[i][5] = 1.0 * d5;
+        x[i][6] = 1.0 * d6;
+        x[i][7] = 1.0 * d7;
+        if(strcmp(res, "Yes") != -1){
+            t[i][0] = 1.0;
+            t[i][1] = 0.0;
+        }else{
+            t[i][0] = 0.0;
+            t[i][1] = 1.0;
+        }
     }
 
     for(k = 0; k < layer; k++)
         for(i = 0; i < M; i++)
-            for(j = 0; j < M; j++)
-                w[k][i][j] = 0.01 * j;
-
-    for(n = 0; n < N; n++){
-        feed_forward(x[n], D, z, M, w[0], sigmoid);
-        feed_forward(z, M, y[n], 2, w[1], sigmoid);
-        total_error = get_total_error(n); 
-        for(i = 0; i < K; i++){
-            err[1][i] = y[n][i] - t[n][i];
-        }
-        for(i = 0; i < M; i++){
-            err[0][i] = 0;
-            for(j = 0; j < K; j++){
-                err[0][i] += w[1][j][i] * err[1][j]; 
+            for(j = 0; j < M; j++){
+                d[k][i][j] = 0;
+                w[k][i][j] = 2.0 * (rando() - 0.5) * 0.1;
             }
-            err[0][i] *= z[i] * (1 - z[i]);
-        }
-        for(j = 0; j < M; j++)
-            for(i = 0; i < D; i++)
-                w[0][j][i] -= b * err[0][j] * x[n][i]; 
-        for(k = 0; k < K; k++)
+
+    for(loop = 0; loop < 100; loop++){
+        total_error = 0;
+        for(n = 0; n < N; n++){
+            feed_forward(x[n], D, z, M, w[0], sigmoid);
+            feed_forward(z, M, y[n], 2, w[1], sigmoid);
+            total_error += get_total_error(n); 
+            for(i = 0; i < K; i++){
+                err[1][i] = (t[n][i] - y[n][i]) * y[n][i] * (1.0 -y[n][i]);
+            }
+            for(i = 0; i < M; i++){
+                err[0][i] = 0;
+                for(j = 0; j < K; j++){
+                    err[0][i] += w[1][j][i] * err[1][j]; 
+                }
+                err[0][i] *= z[i] * (1.0 - z[i]);
+            }
             for(j = 0; j < M; j++)
-                w[1][k][j] -= b * err[1][k] * z[j];
+                for(i = 0; i < D; i++){
+                    d[0][j][i] = alpha * d[0][j][i] + eta * err[0][j] * x[n][i];
+                    w[0][j][i] += d[0][j][i]; 
+                }
+            for(k = 0; k < K; k++)
+                for(j = 0; j < M; j++){
+                    d[1][k][j] = alpha * d[1][k][j] + eta * err[1][j] * z[j];
+                    w[1][k][j] += d[1][k][j];
+                }
+        }
     }
-    test = predict(in);    
-    printf("%lf\t%lf\n", test[0], test[1]); 
+    test = predict(in1);
+    printf("%lf\t%lf\n", test[0], test[1]);
+    test = predict(in2);
+    printf("%lf\t%lf\n", test[0], test[1]);
     free(test);
     return 0;
 }
