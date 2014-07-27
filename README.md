@@ -12,6 +12,12 @@
 ### 2201 Cartesian Tree
 笛卡尔树，RMQ（超空间。。）
 
+### 2084 Game of Connections
+高精度，图分割，分治，递归
+
+### 1906 Three powers
+高精度，二进制，集合
+
 ## Graph
 
 ### 2421 Constructing Roads
@@ -20,4 +26,9 @@
 ### 2369 Permutations
 强连通分量（简化版），最小公倍数
 
+### 2243 Knight Moves
+BFS
+
+### 2255 Tree Recovery
+根据前序遍历和中序遍历求后续遍历 DFS
 
