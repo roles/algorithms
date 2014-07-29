@@ -32,3 +32,17 @@ BFS
 ### 2255 Tree Recovery
 根据前序遍历和中序遍历求后续遍历 DFS
 
+### 1860 Currency Exchange
+Bellman-Ford算法，正环路
+
+### 3259 Wormholes
+Bellman-Ford算法，负环路
+
+### 2253 Frogger
+Dijkstra算法，稠密图，矩阵
+
+### 1125 Stockbroker Grapevine
+Floyd算法
+
+### 2240 Arbitrage
+Bellman-Ford算法，正环路
