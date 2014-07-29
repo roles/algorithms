@@ -46,3 +46,6 @@ Floyd算法
 
 ### 2240 Arbitrage
 Bellman-Ford算法，正环路
+
+### 1789 Truck History
+稠密图最小生成树，Prim算法
