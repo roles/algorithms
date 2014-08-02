@@ -49,3 +49,15 @@ Bellman-Ford算法，正环路
 
 ### 1789 Truck History
 稠密图最小生成树，Prim算法
+
+### 2485 Highways
+稠密图最小生成树，Prim算法
+
+### 1258 Agri-Net
+稠密图最小生成树，Prim算法
+
+### 3026 Borg Maze
+BFS建立距离数组，Prim算法
+
+### 1094 Sorting It All Out
+拓扑排序，入度排序，邻接表保存边
