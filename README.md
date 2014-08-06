@@ -18,6 +18,9 @@
 ### 1906 Three powers
 高精度，二进制，集合
 
+### 2513 Colored Sticks
+Trie树，并查集判断连通，欧拉回路
+
 ## Graph
 
 ### 2421 Constructing Roads
