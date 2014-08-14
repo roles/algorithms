@@ -8,7 +8,7 @@ class Solution {
         vector<vector<int> > combinationSum2(vector<int> &num, int target){
 
         }
-}
+};
 
 int main(){
     Solution s; 
