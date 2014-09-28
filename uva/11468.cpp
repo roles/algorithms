@@ -6,8 +6,20 @@
 
 using namespace std;
 
-const int maxnode = 155 * 70;
-const int sigma_size = 26;
+const int maxnode = 405;
+const int sigma_size = 62;
+
+int N;
+double prob[sigma_size];
+int validChar[sigma_size];
+
+int idx(char c){
+    if(c >= '0' && c <= '9')
+        return c - '0' + 52;
+    if(c >= 'a' && c <= 'z')
+        return c - 'a';
+    return c - 'A' + 26;
+}
 
 /*
  * AC自动机，Trie树和KMP失配边的结合
@@ -19,18 +31,12 @@ struct AC {
     int last[maxnode];  //last[j]表示结点j失配时往回走遇到的下一个单词结点编号
     int sz;
 
-    int cnt[155];   //每个单词成功匹配的次数
-    map<string, int> m; //每个字符串与其val的对应关系
-
-    int idx(char c){
-        return c - 'a';
-    }
 
     void init(){
         sz = 1; 
         memset(ch[0], 0, sizeof(ch[0])); 
-        memset(cnt, 0, sizeof(cnt));
-        m.clear();
+        memset(vis, 0, sizeof(vis));
+        memset(prob, 0, sizeof(prob));
     }
     
     AC() { 
@@ -49,7 +55,6 @@ struct AC {
             u = ch[u][c];
         }
         val[u] = v;
-        m[string(s)] = v;   //模板重复时，后一个模板会覆盖前一个
     }
 
     /* 构建AC状态机的失配函数f和last函数 */
@@ -74,9 +79,17 @@ struct AC {
                         r = f[r];
                     f[v] = ch[r][i];        //ch[r][i]不为0时，相当于KMP中f[i+1]=r+1;
 
+                    //对AC自动机的改造，
+                    val[v] |= val[f[v]];    
+
                     //若失配跳转结点f[v]为单词结点则记为last[v]
                     //否则跳到last[f[v]]
-                    last[v] = val[f[v]] ? f[v] : last[f[v]];
+                    //last[v] = val[f[v]] ? f[v] : last[f[v]];
+                }else{
+
+                    //对AC自动机的改造，将失配状态的子结点变为自己的子结点
+                    //这是一个递推的过程，层次最高的状态也会共享层次最低状态的子结点
+                    ch[u][i] = ch[f[u]][i]; 
                 }
             }
         }
@@ -85,7 +98,7 @@ struct AC {
     /* 匹配成功时打印或记录 */
     void print(int u){
         if(u){
-            cnt[val[u]]++;  //该单词结点匹配次数增加
+            printf("%d\n", u);
             print(last[u]);
         }
     }
@@ -106,39 +119,69 @@ struct AC {
                 print(last[v]);
         }
     }
+
+    double d[maxnode][105];
+    int vis[maxnode][105];
+    /*
+     * 带备忘录的概率动态规划
+     * 先要对AC自动机进行改造，使得状态能够指向其祖先失配状态的子结点，
+     * 即在getFail中对不存在的ch[u][i]调用ch[u][i] = ch[f[u]][i]
+     * 并且所有状态共享其祖先失配状态的单词结点判别，即val[u] |= val[f[u]]
+     *
+     * d[i,j]表示从结点i开始走j步，不碰到任何单词结点的概率
+     * d[i,j]=sum{d(ch[i][k], j-1)} 
+     * st k=1...N 且 val[ch[i][k]]==0为非单词节点
+     */
+    double getProb(int u, int L){
+        if(L == 0)
+            return 1.0;
+        if(vis[u][L])
+            return d[u][L];
+        vis[u][L] = 1;
+        double &ans = d[u][L];
+        ans = 0.0;
+        for(int i = 0; i < N; i++){
+            int c = idx(validChar[i]);
+            int v = u;
+            if(!val[ch[v][c]]){     //只考虑非单词结点
+                //由于对AC自动机的改造，即使状态v不存在子结点c
+                //ch[v][c]仍可以直接跳到失配状态f[v]的子结点c
+                ans += prob[c] * getProb(ch[v][c], L-1);
+            }
+        }
+        return ans;
+    }
 };
 
 AC ac;
-char T[1000005];
-char P[155][75];
 
 int main(){
-    int m;
-    while(true){
-        scanf("%d", &m);
-        if(!m) break;
+    //freopen("in.txt", "r", stdin);
+    int ncase, Ncase;
+    scanf("%d", &Ncase);
+    char P[25];
+    for(int ncase = 1; ncase <= Ncase; ncase++){
+        int K, L;
 
         ac.init();
-        for(int i = 1; i <= m; i++){
-            scanf("%s", P[i]);
-            ac.insert(P[i], i);     //val值不为0，故从1开始
+        scanf("%d", &K);
+        
+        while(K--){
+            scanf("%s", P);
+            ac.insert(P, 1);
         }
-        scanf("%s", T);
+        scanf("%d", &N);
+        for(int i = 0; i < N; i++){
+            scanf("%s", P);
+            validChar[i] = P[0];
+            scanf("%lf", &prob[idx(validChar[i])]);
+        }
+        scanf("%d", &L);
 
         ac.getFail();
-        ac.find(T);
 
-        int best = -1;
-        for(int i = 1; i <= m; i++){
-            int c = ac.cnt[i];
-            if(c > best)
-                best = c;
-        }
-        printf("%d\n", best);
-        for(int i = 1; i <= m; i++){
-            if(ac.cnt[ac.m[string(P[i])]] == best)
-                printf("%s\n", P[i]);
-        }
+        printf("Case #%d: %.6lf\n", ncase, ac.getProb(0, L));
     }
+        
     return 0;
 }
