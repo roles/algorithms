@@ -11,6 +11,27 @@ const int sigma_size = 128;
 int nrow, ncol;     //模板的行数和列数
 
 /*
+test case:
+1
+10 10
+aabababaaa
+ababababba
+bababbaaab
+babbabaaba
+babababaab
+ababaababa
+bababbabba
+abaabaabab
+babaaababa
+ababaabaab
+2 2
+ab
+ba
+
+output: 19
+ */
+
+/*
  * AC自动机，Trie树和KMP失配边的结合
  */
 struct AC {
